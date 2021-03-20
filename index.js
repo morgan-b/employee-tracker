@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
+const env = require('dotenv');
 require('dotenv').config();
 
 const connection = mysql.createConnection({
@@ -12,16 +13,19 @@ const connection = mysql.createConnection({
     user: 'root',
 
     // Your password
-    password: process.env.DB_PASS,
+    password: '!Snuffles23',
     database: 'employee_trackerDB',
 });
 
 connection.connect((err) => {
     if (err) throw err;
-    runSearch();
+    runSearch()
 });
 
+
+
 const runSearch = () => {
+
     inquirer
         .prompt({
             name: 'action',
@@ -50,8 +54,8 @@ const runSearch = () => {
                     break;
 
                 case 'View All Employees by Department':
-                    empDepartment();
-                    break;
+                    return empDepartment();
+
 
                 case 'View All Employees by Manager':
                     empManager();
@@ -93,142 +97,172 @@ const runSearch = () => {
                     removeDept();
                     break;
 
-                case 'Exit':
+                case 'exit':
                     connection.end();
                     break;
+
 
                 default:
                     console.log(`Invalid action: ${answer.action}`);
                     break;
             }
         });
+
 };
 
 
-empDepartment()
-mpManager();
-addEmployee();
-removeEmployee();
-updateRole();
-updateManager();
-allRoles();
-addRole();
-removeRole();
-addDept();
-removeDept();
+
+// addEmployee();
+// removeEmployee();
+// updateRole();
+// updateManager();
+// allRoles();
+// addRole();
+// removeRole();
+// addDept();
+// removeDept();
 
 const allEmployees = () => {
-    const query = 'SELECT * FROM top5000 WHERE ?';
-    connection.query(query, { artist: answer.artist }, (err, res) => {
-        if (err) throw err;
-        res.forEach(({ position, song, year }) => {
-            console.log(
-                `Position: ${position} || Song: ${song} || Year: ${year}`
-            );
-        });
-        runSearch();
-    });
-};
-
-
-
-
-const artistSearch = () => {
-    inquirer
-        .prompt({
-            name: 'artist',
-            type: 'input',
-            message: 'What artist would you like to search for?',
-        })
-        .then((answer) => {
-            const query = 'SELECT position, song, year FROM top5000 WHERE ?';
-            connection.query(query, { artist: answer.artist }, (err, res) => {
-                if (err) throw err;
-                res.forEach(({ position, song, year }) => {
-                    console.log(
-                        `Position: ${position} || Song: ${song} || Year: ${year}`
-                    );
-                });
-                runSearch();
-            });
-        });
-};
-
-const multiSearch = () => {
-    const query =
-        'SELECT artist FROM top5000 GROUP BY artist HAVING count(*) > 1';
+    const query = 'select e.id,e.first_name,e.last_name, d.name as Department,r.title, r.salary from employee e inner join role r on e.role_id = r.id join department d on d.id = r.department_id';
     connection.query(query, (err, res) => {
         if (err) throw err;
-        res.forEach(({ artist }) => console.log(artist));
-        runSearch();
+        console.table(res);
+    });
+
+
+    //  runSearch();
+};
+
+const empDepartment = () => {
+    const query = 'select DISTINCT name as Department from department';
+    connection.query(query, (err, res) => {
+
+        var dept = res.map(item => item.Department);
+        if (err) throw err;
+
+        inquirer
+            .prompt({
+                name: 'action',
+                type: 'list',
+                message: 'Which Deparment would you like to view?',
+                choices: dept
+
+            })
+            .then((answer) => {
+                let answers = Object.values(answer)
+                console.log(answers)
+                const query = 'select e.id,e.first_name,e.last_name, d.name as Department,r.title, r.salary from employee e inner join role r on e.role_id = r.id join department d on d.id = r.department_id WHERE ?';
+                connection.query(query, { "d.name": answers }, (err, res) => {
+                    if (err) throw err;
+                    console.table(res);
+                });
+
+
+
+            });
+
+        // runSearch()
+
     });
 };
 
-const rangeSearch = () => {
-    inquirer
-        .prompt([
-            {
-                name: 'start',
-                type: 'input',
-                message: 'Enter starting position: ',
-                validate(value) {
-                    if (isNaN(value) === false) {
-                        return true;
-                    }
-                    return false;
-                },
-            },
-            {
-                name: 'end',
-                type: 'input',
-                message: 'Enter ending position: ',
-                validate(value) {
-                    if (isNaN(value) === false) {
-                        return true;
-                    }
-                    return false;
-                },
-            },
-        ])
-        .then((answer) => {
-            const query =
-                'SELECT position,song,artist,year FROM top5000 WHERE position BETWEEN ? AND ?';
-            connection.query(query, [answer.start, answer.end], (err, res) => {
-                if (err) throw err;
-                res.forEach(({ position, song, artist, year }) =>
-                    console.log(
-                        `Position: ${position} || Song: ${song} || Artist: ${artist} || Year: ${year}`
-                    )
-                );
-                runSearch();
+const empManager = () => {
+    const query = 'select concat(e.first_name," ",e.last_name) as name from employee e  where e.id in (select e.manager_id from employee e)';
+    connection.query(query, (err, res) => {
+
+        var dept = res.map(item => item.name);
+        if (err) throw err;
+
+        inquirer
+            .prompt({
+                name: 'action',
+                type: 'list',
+                message: 'Which managers employees would you like to view',
+                choices: dept
+
+            })
+            .then((answer) => {
+                let answerManagers = Object.values(answer)
+                let managerString = answerManagers.toString(answerManagers)
+                let managerName = managerString.split(' ')
+                // let answerz = answerMan.split("")
+                // console.log(answerz)
+
+                console.log(answerManagers)
+                const query1 = 'select e.id from employee e WHERE ? AND ?';
+                connection.query(query1, [{ "e.first_name": managerName[0] }, { "e.last_name": managerName[1] }],
+                    (err, res) => {
+                        var managerids = res.map(item => item.id);
+                        console.log(managerids)
+                        if (err) throw err;
+                        const query = 'select e.id,concat(e.first_name," ",e.last_name) as name, d.name as Department,r.title, r.salary from employee e inner join role r on e.role_id = r.id join department d on d.id = r.department_id WHERE ?';
+                        connection.query(query, { "e.manager_id": managerids },
+                            (err, res) => {
+                                if (err) throw err;
+                                console.table(res);
+                            });
+                    });
+
+
             });
-        });
+
+    });
+
 };
 
-const songSearch = () => {
-    inquirer
-        .prompt({
-            name: 'song',
-            type: 'input',
-            message: 'What song would you like to look for?',
-        })
-        .then((answer) => {
-            console.log(`You searched for "${answer.song}"`);
-            connection.query(
-                'SELECT * FROM top5000 WHERE ?',
-                { song: answer.song },
-                (err, res) => {
-                    if (err) throw err;
-                    if (res[0]) {
-                        console.log(
-                            `Position: ${res[0].position} || Song: ${res[0].song} || Artist: ${res[0].artist} || Year: ${res[0].year}`
-                        );
-                        runSearch();
-                    } else {
-                        console.error('Song not found :(\n');
-                        runSearch();
-                    }
-                }
-            );
-        });
-};
+
+const addEmployee = () => {
+    const query = 'select concat(e.first_name," ",e.last_name) as name from employee e  where e.id in (select e.manager_id from employee e)';
+    connection.query(query, (err, res) => {
+
+        var dept = res.map(item => item.name);
+        if (err) throw err;
+
+        inquirer
+            .prompt({
+                name: 'action',
+                type: 'list',
+                message: 'Which managers employees would you like to view',
+                choices: dept
+
+            })
+            .then((answer) => {
+                let answerManagers = Object.values(answer)
+                let managerString = answerManagers.toString(answerManagers)
+                let managerName = managerString.split(' ')
+                // let answerz = answerMan.split("")
+                // console.log(answerz)
+
+                console.log(answerManagers)
+                const query1 = 'select e.id from employee e WHERE ? AND ?';
+                connection.query(query1, [{ "e.first_name": managerName[0] }, { "e.last_name": managerName[1] }],
+                    (err, res) => {
+                        var managerids = res.map(item => item.id);
+                        console.log(managerids)
+                        if (err) throw err;
+                        const query = 'select e.id,concat(e.first_name," ",e.last_name) as name, d.name as Department,r.title, r.salary from employee e inner join role r on e.role_id = r.id join department d on d.id = r.department_id WHERE ?';
+                        connection.query(query, { "e.manager_id": managerids },
+                            (err, res) => {
+                                if (err) throw err;
+                                console.table(res);
+                            })
+                    })
+
+
+            });
+
+    })
+        ;
+
+
+}
+
+
+
+    // runSearch()
+
+
+    //
+
+
+
