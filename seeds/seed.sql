@@ -2,22 +2,22 @@ create database employee_trackerDB;
 
 create table role (
 id INT AUTO_INCREMENT NOT NULL,
-title varchar(30),
-salary decimal(10,2),
-department_id int,
+title VARCHAR(30),
+salary DECIMAL(10,2),
+department_id INT,
 PRIMARY KEY(id));
 
 create table employee (
 id INT AUTO_INCREMENT NOT NULL,
-first_name varchar(30),
-last_name varchar(30),
-role_id int,
-manager_id int,
+first_name VARCHAR(30),
+last_name VARCHAR(30),
+role_id INT,
+manager_id INT,
 PRIMARY KEY(id));
 
 create table department (
 id INT AUTO_INCREMENT NOT NULL,
-name varchar(30),
+name VARCHAR(30),
 PRIMARY KEY(id));
 
 
