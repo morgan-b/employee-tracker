@@ -173,22 +173,17 @@ const empManager = () => {
         var dept = res.map(item => item.name);
         if (err) throw err;
 
-        inquirer
-            .prompt({
-                name: 'action',
-                type: 'list',
-                message: 'Which managers employees would you like to view',
-                choices: dept
+        inquirer.prompt({
+            name: 'action',
+            type: 'list',
+            message: 'Which managers employees would you like to view',
+            choices: dept
 
-            })
+        })
             .then((answer) => {
                 let answerManagers = Object.values(answer)
                 let managerString = answerManagers.toString(answerManagers)
                 let managerName = managerString.split(' ')
-                // let answerz = answerMan.split("")
-                // console.log(answerz)
-
-                console.log(answerManagers)
                 const query1 = 'select e.id from employee e WHERE ? AND ?';
                 connection.query(query1, [{ "e.first_name": managerName[0] }, { "e.last_name": managerName[1] }],
                     (err, res) => {
@@ -201,61 +196,136 @@ const empManager = () => {
                                 if (err) throw err;
                                 console.table(res);
                             });
-                    });
-
+                    }
+                );
 
             });
-
     });
-
 };
 
 
 const addEmployee = () => {
-    const query = 'select concat(e.first_name," ",e.last_name) as name from employee e  where e.id in (select e.manager_id from employee e)';
-    connection.query(query, (err, res) => {
 
-        var dept = res.map(item => item.name);
+    let roleInfo = [];
+    let managerInfo = [];
+    const query1 = 'SELECT id, title FROM role ORDER BY title ASC';
+    const query2 = "SELECT employee.id, concat(employee.first_name, ' ' ,  employee.last_name) AS Employee FROM employee ORDER BY Employee ASC";
+
+
+    connection.query(query1, (err, res) => {
         if (err) throw err;
-
-        inquirer
-            .prompt({
-                name: 'action',
-                type: 'list',
-                message: 'Which managers employees would you like to view',
-                choices: dept
-
-            })
-            .then((answer) => {
-                let answerManagers = Object.values(answer)
-                let managerString = answerManagers.toString(answerManagers)
-                let managerName = managerString.split(' ')
-                // let answerz = answerMan.split("")
-                // console.log(answerz)
-
-                console.log(answerManagers)
-                const query1 = 'select e.id from employee e WHERE ? AND ?';
-                connection.query(query1, [{ "e.first_name": managerName[0] }, { "e.last_name": managerName[1] }],
-                    (err, res) => {
-                        var managerids = res.map(item => item.id);
-                        console.log(managerids)
-                        if (err) throw err;
-                        const query = 'select e.id,concat(e.first_name," ",e.last_name) as name, d.name as Department,r.title, r.salary from employee e inner join role r on e.role_id = r.id join department d on d.id = r.department_id WHERE ?';
-                        connection.query(query, { "e.manager_id": managerids },
-                            (err, res) => {
-                                if (err) throw err;
-                                console.table(res);
-                            })
-                    })
-
-
-            });
+    var roleNames = res.map(item => item.title);
+        roleInfo.push(roleNames);
+        console.log(roleInfo)
 
     })
-        ;
+    connection.query(query2, (err, res) => {
+        if (err) throw err;
+     var employeeNames = res.map(item => item.Employee);
+        managerInfo.push(employeeNames);
+        console.log(managerInfo)
 
+    })
+inquirer.prompt([
+        {
+            name: 'first_name',
+            type: 'input',
+            message: 'What is the first name of the employee?',
+        },
+        {
+            name: 'last_name',
+            type: 'input',
+            message: 'What is the first name of the employee?',
+        },
+        {
+            name: 'role',
+            type: 'list',
+            message: 'What is the role of the employee?',
+            choices: roleInfo,
+
+        },
+        {
+            name: 'manager',
+            type: 'list',
+            message: 'Who is the manager of the employee?',
+            choices: managerInfo,
+
+        },
+    ])
 
 }
+
+    
+//         .then((answer) => {
+//             // when finished prompting, insert a new item into the db with that info
+//             connection.query(
+//                 'INSERT INTO auctions SET ?',
+//                 // QUESTION: What does the || 0 do?
+//                 {
+//                     item_name: answer.item,
+//                     category: answer.category,
+//                     starting_bid: answer.startingBid || 0,
+//                     highest_bid: answer.startingBid || 0,
+//                 },
+//                 (err) => {
+//                     if (err) throw err;
+//                     console.log('Your auction was created successfully!');
+//                     // re-prompt the user for if they want to bid or post
+//                     start();
+//                 }
+//             );
+//         });
+// };
+
+
+
+
+
+
+// const query = 'select concat(e.first_name," ",e.last_name) as name from employee e  where e.id in (select e.manager_id from employee e)';
+// connection.query(query, (err, res) => {
+
+//     var dept = res.map(item => item.name);
+//     if (err) throw err;
+
+//     inquirer
+//         .prompt({
+//             name: 'action',
+//             type: 'list',
+//             message: 'Which managers employees would you like to view',
+//             choices: dept
+
+//         })
+//         .then((answer) => {
+//             let answerManagers = Object.values(answer)
+//             let managerString = answerManagers.toString(answerManagers)
+//             let managerName = managerString.split(' ')
+//             // let answerz = answerMan.split("")
+//             // console.log(answerz)
+
+//             console.log(answerManagers)
+//             const query1 = 'select e.id from employee e WHERE ? AND ?';
+//             connection.query(query1, [{ "e.first_name": managerName[0] }, { "e.last_name": managerName[1] }],
+//                 (err, res) => {
+//                     var managerids = res.map(item => item.id);
+//                     console.log(managerids)
+//                     if (err) throw err;
+//                     const query = 'select e.id,concat(e.first_name," ",e.last_name) as name, d.name as Department,r.title, r.salary from employee e inner join role r on e.role_id = r.id join department d on d.id = r.department_id WHERE ?';
+//                     connection.query(query, { "e.manager_id": managerids },
+//                         (err, res) => {
+//                             if (err) throw err;
+//                             console.table(res);
+//                         })
+//                 })
+
+
+//         });
+
+// })
+//     ;
+
+
+// }
 
 
 
