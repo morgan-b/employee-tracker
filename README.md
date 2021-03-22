@@ -18,15 +18,13 @@ Please enter your username and password in the index.js file where prompted.
 
 To start, use the command `npm start`
 
-A seed file has been provided in seed.sql which uses the below database schema.
-
-![Database Schema](Assets/schema.png)
+A seed file has been provided in seed.sql.
 
 ## Mock-Up
 
 The following video shows the functionality of the app.
 
-![Employee Tracker](Assets/employee-tracker.gif)
+[Employee Tracker](https://drive.google.com/file/d/1Jce8b6S3XRFBGVI81pRKgK-uoYw5djQQ/view)
 
 ## License
 

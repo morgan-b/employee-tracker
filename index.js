@@ -10,7 +10,7 @@ const connection = mysql.createConnection({
     port: 3306,
 
     // Your username
-    user: 'YOUR_USERNAME',
+    user: 'USERNAME',
 
     // Your password
     password: 'YOUR_PASSWORD',
@@ -42,12 +42,9 @@ const runSearch = () => {
                 'Add Employee',
                 'Remove Employee',
                 'Update Employee Role',
-                'Update Employee Manager',
                 'View All Roles',
                 'Add Role',
-                'Remove Role',
                 'Add Department',
-                'Remove Department',
                 'exit',
             ],
         })
@@ -77,9 +74,6 @@ const runSearch = () => {
                     updateRole();
                     break;
 
-                case 'Update Employee Manager':
-                    updateManager();
-                    break;
 
                 case 'View All Roles':
                     allRoles();
@@ -89,17 +83,11 @@ const runSearch = () => {
                     addRole();
                     break;
 
-                case 'Remove Role':
-                    removeRole();
-                    break;
 
                 case 'Add Department':
                     addDept();
                     break;
 
-                case 'Remove Department':
-                    removeDept();
-                    break;
 
                 case 'exit':
                     connection.end();
@@ -355,11 +343,7 @@ const addRole = () => {
     connection.query(query1, (err, res) => {
         if (err) throw err;
 
-
         var deptName = res.map(item => item.name);
-
-
-
 
         inquirer.prompt([
             {
@@ -393,13 +377,14 @@ const addRole = () => {
                             (SELECT id FROM department WHERE name = "${answer.dept}"));`
                 )
 
-
+                console.log("Role added!")
+                runSearch();
 
             });
-        console.log("Role added!")
-        runSearch();
+           
 
     })
+
 }
 
 
@@ -414,10 +399,10 @@ const addDept = () => {
         }
     ]).then((answer) => {
         connection.query(`INSERT INTO department(name) VALUES( ? )`, answer.newDept)
-
+        console.log("Department added!")
+        runSearch();
     })
-    console.log("Department added!")
-    runSearch();
+  
 
 }
 
